@@ -8,15 +8,15 @@
 
 
 void Motors_Drive(Motors* side, float speed){
-    /* default speed renders useless edge case handlers
+    default speed renders useless edge case handlers
     // enforce PWM limits
     speed = (speed > MOTOR_MAX_PWM) ? MOTOR_MAX_PWM : (speed < -MOTOR_MAX_PWM) ? -MOTOR_MAX_PWM : speed;
-
+    
     if (speed == 0){
         Motors_Stop(side);
         return;
     }
-    */
+    
     int magnitude = abs(speed);
     
     if (speed > 0){
@@ -44,27 +44,31 @@ void Motors_Tank(Motors* left, Motors* right, float leftSpeed, float rightSpeed)
 
 
 float m_to_time(float distance_m, int PWM){
+    // experimental value
     return distance_m * 3.875;
 }
 
 float angle_to_time(float angle_degrees, int PWM){
+    // experimental value
     return angle_degrees * 0.0196;
 }
 
 void Motors_Move_Distance(Motors* left_side, Motors* right_side, float distance_m){
 
     if (distance_m == 0) return;
-    
-    unsigned long time_ms = m_to_time(fabs(distance_m), DEFAULT_PWM)*1000;
-    
-    if (distance_m > 0){
+
+    // compute time required for given distance
+    unsigned long time_ms = m_to_time(fabs(distance_m), DEFAULT_PWM) * 1000;
+
+    bool forward = (distance_m > 0);
+    if (forward){
         Motors_Tank(left_side, right_side, DEFAULT_PWM, DEFAULT_PWM);
     }
     else {
         Motors_Tank(left_side, right_side, -DEFAULT_PWM, -DEFAULT_PWM);
     }
 
-    delay(time_ms);
+    delay(time_ms); // motors run until delay ends
     Motors_Stop(left_side);
     Motors_Stop(right_side);
 }
@@ -73,10 +77,10 @@ void Motors_Rotate_Angle(Motors* left_side, Motors* right_side, float angle_degr
     
     if (angle_degrees == 0) return;
 
-    unsigned long time_ms = angle_to_time(fabs(angle_degrees), DEFAULT_PWM)*1000;
+    // compute time required for given angle
+    unsigned long time_ms = angle_to_time(fabs(angle_degrees), DEFAULT_PWM) * 1000;
 
     bool anticlockwise = (angle_degrees < 0);
-    
     if (anticlockwise){
         Motors_Tank(left_side, right_side, -DEFAULT_PWM, DEFAULT_PWM);
     }
@@ -84,7 +88,7 @@ void Motors_Rotate_Angle(Motors* left_side, Motors* right_side, float angle_degr
         Motors_Tank(left_side, right_side, DEFAULT_PWM, -DEFAULT_PWM);
     }
 
-    delay(time_ms);
+    delay(time_ms); // motors run until delay ends
     Motors_Stop(left_side);
     Motors_Stop(right_side);
 }
