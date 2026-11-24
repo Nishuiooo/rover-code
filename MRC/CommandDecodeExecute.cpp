@@ -47,9 +47,6 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
     command.toLowerCase();
 
     // Seperate Command Words
-
-    // TODO: implement invalid command detection in python control code (>3 word commands are rejected below)
-    // possible edit to 4 word command structure, if so we will have to implement change in command tree as well
     String CommandArray[3];
     int CommandArrayIndex = 0;
     int j = 0;
@@ -79,18 +76,21 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
     }
     
     CommandArray[CommandArrayIndex] = command.substring(j);
-    
+
+    // place parsed words in clearly labelled variables
     String Word1 = CommandArray[0];
     String Word2 = CommandArray[1];
     String Word3 = CommandArray[2];
 
 
-    //command tree
-
+    // command tree
+    // first find switch case
+    // read response messages to see function of each case
     FirstWordEnum DeviceInstructionEnum = DeviceSwitchInput(Word1);
     switch(DeviceInstructionEnum){
         case MOVE:{
-            float Word3_value;
+
+            float Word3_value; // MOVE type commands require only the 3rd word to be a number
             if (isNumeric(Word3)){
                 Word3_value = Word3.toFloat();
             }
@@ -100,19 +100,24 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
             }
             
             if (Word3_value == 0){
-                Bluetooth_Write(BTdevice, "dumbass");
+                Bluetooth_Write(BTdevice, "dumbass"); // joke
             }
+            
             if (Word2 == "walk"){
+                // +-1111 signals perpetual movement until the command "stop" is given
                 if (fabs(Word3_value) == 1111){
                     bool forwards = (Word3_value > 0);
+                    // all motors move same direction
                     if (forwards){
                         Motors_Tank(LeftMotors, RightMotors, DEFAULT_PWM, DEFAULT_PWM);
                     }
                     else{
                         Motors_Tank(LeftMotors, RightMotors, -DEFAULT_PWM, -DEFAULT_PWM);
                     }
+                    
                     Bluetooth_Write(BTdevice, "Type STOP to stop");
                     bool stop = false;
+                    // infinite loop until "stop" is read by the arduino
                     while (!stop){
                         String StopCMD = Bluetooth_Read(BTdevice);
                         StopCMD.trim();
@@ -134,8 +139,10 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
                 return;
             }
             else if (Word2 == "spin"){
+                // +-1111 signals perpetual movement until the command "stop" is given
                 if (fabs(Word3_value) == 1111){
                     bool anticlockwise = (Word3_value < 0);
+                    // each side's motors move opposite to the other side
                     if (anticlockwise){
                         Motors_Tank(LeftMotors, RightMotors, -DEFAULT_PWM, DEFAULT_PWM);
                     }
@@ -144,6 +151,7 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
                     }
                     Bluetooth_Write(BTdevice, "Type STOP to stop");
                     bool stop = false;
+                    // infinite loop until "stop" command is read by Arduino
                     while (!stop){
                         String StopCMD = Bluetooth_Read(BTdevice);
                         StopCMD.trim();
@@ -162,7 +170,6 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
                     Motors_Rotate_Angle(LeftMotors, RightMotors, Word3_value);
                     Bluetooth_Write(BTdevice, "OK spin " + String(Word3_value) + " degrees");           
                 }
-
                 return;
             }
             else{
@@ -173,7 +180,7 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
         }
 
         case SERVO:{
-            float Word3_value;
+            float Word3_value; // SERVO type commands require only the 3rd word to be a number
             if (isNumeric(Word3)){
                 Word3_value = Word3.toFloat();
             }
@@ -186,6 +193,7 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
                 Bluetooth_Write(BTdevice, "Error: move servo between 0 and 180 degrees");
                 return;
             }
+            
             if (Word2 == "bottom"){
                 MoveServo(Servo_a, Word3_value);
                 Bluetooth_Write(BTdevice, "Bottom servo moved to " + String(Word3_value) + " degrees");
@@ -203,7 +211,7 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
         }
 
         case SERVOS:{
-            float Word2_value;
+            float Word2_value; // SERVOS type commands require the 2nd and 3rd words to be numbers
             float Word3_value;
             if (isNumeric(Word2) && isNumeric(Word3)){
                 Word2_value = Word2.toFloat();
@@ -218,6 +226,7 @@ void Command_Decode_Execute(String command, Servo* Servo_a, Servo* Servo_b, Moto
                 Bluetooth_Write(BTdevice, "Error: move servos between 0 and 180 degrees");
                 return;
             }
+            
             MoveBothServos(Servo_a, Servo_b, Word2_value, Word3_value);
             Bluetooth_Write(BTdevice, "Both servos moved to " + String(Word2_value) + " and " + String(Word3_value) + " degrees");
             return;
