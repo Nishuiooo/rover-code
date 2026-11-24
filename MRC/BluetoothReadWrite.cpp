@@ -5,6 +5,7 @@
 #include <SoftwareSerial.h>
 #include "include/BluetoothReadWrite.h"
 
+// set true to use serial monitor communication for testing
 const bool YesSerial = false;
 
 String Bluetooth_Read(SoftwareSerial* BTdevice){
