@@ -30,6 +30,6 @@ void loop(){
 
     if (BTcommand == "") return;
 
-    //decode and execute command
+    // parse and execute command
     Command_Decode_Execute(BTcommand, &servo1, &servo2, &LeftSideMotors, &RightSideMotors, &HC06);
 }
