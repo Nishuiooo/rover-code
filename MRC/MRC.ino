@@ -14,7 +14,7 @@ Motors LeftSideMotors;
 Motors RightSideMotors;
 
 Servo servo1, servo2;
-SoftwareSerial HC06(BLUETOOTH_RX, BLUETOOTH_TX);
+SoftwareSerial HC06(BLUETOOTH_RX, BLUETOOTH_TX); // can connect any UART port, not just hc06 (we ended up using an ESP32)
 //------------------------------------------------//
 
 void setup(){
